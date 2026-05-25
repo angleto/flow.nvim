@@ -1,4 +1,4 @@
-# flow.nvim
+# flow-nvim
 
 Neovim front-end for the Flow CLI. Browse tasks, notes, today's
 agenda, and capture new notes/tasks without leaving your editor.
@@ -11,7 +11,7 @@ does not embed an HTTP client. Install `flow` first.
 ### 1. Install the CLI
 
 ```sh
-brew install angleto/tap/flow-cli
+brew install angleto/flow/flow-cli
 ```
 
 Log in once:
@@ -26,7 +26,7 @@ Drop the following into `~/.config/nvim/lua/plugins/flow.lua`:
 
 ```lua
 return {
-  "angleto/flow.nvim",
+  "angleto/flow-nvim",
   version = "*",           -- resolves to the latest v* tag (matches Flow's release)
   event = "VeryLazy",      -- load after the UI is ready. We avoid `cmd = "Flow"`
                            -- and key-only lazy triggers because both keep the
@@ -117,7 +117,7 @@ profile management stays a single source of truth.
 `:checkhealth flow` covers the common cases:
 
 - **`flow` not on PATH** — Homebrew shim missing. Run the install
-  one-liner above (`brew install angleto/tap/flow-cli`).
+  one-liner above (`brew install angleto/flow/flow-cli`).
 - **`flow auth status` fails** — token expired, server unreachable, or
   wrong base URL. Re-run `flow auth login`.
 
