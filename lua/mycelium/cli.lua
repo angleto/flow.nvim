@@ -1,18 +1,18 @@
--- Async shell-out around the ``flow`` CLI. Every call is JSON-mode by
+-- Async shell-out around the ``mycelium`` CLI. Every call is JSON-mode by
 -- default so the plugin never has to parse Rich's coloured tables.
 
 local M = {}
 
 local function config()
-  return require("flow").config
+  return require("mycelium").config
 end
 
 local function ensure_bin(bin)
   if vim.fn.executable(bin) ~= 1 then
     vim.notify(
-      ("flow-cli (`%s`) not found on PATH.\nInstall with: brew install angleto/flow/flow-cli"):format(bin),
+      ("mycelium-cli (`%s`) not found on PATH.\nInstall with: brew install angleto/mycelium/mycelium-cli"):format(bin),
       vim.log.levels.ERROR,
-      { title = "flow-nvim" }
+      { title = "mycelium-nvim" }
     )
     return false
   end
@@ -21,14 +21,14 @@ end
 
 -- Build ``{ bin, [top-level flags...], <args>... }``.
 -- ``--json`` is a top-level flag on the CLI (registered on
--- ``flow_cli.main.root``), not a sub-command flag, so it MUST appear
+-- ``mycelium_cli.main.root``), not a sub-command flag, so it MUST appear
 -- before the sub-command name. Same shape regardless of how deep the
--- sub-command nesting goes (``flow task list`` etc.).
+-- sub-command nesting goes (``mycelium task list`` etc.).
 --
 -- ``--profile`` deliberately NOT injected here: it is registered only
 -- on a handful of auth/workspace commands (``auth login`` etc.), not
 -- as a top-level flag, and the profile-selection for every other
--- command flows through ``current_profile`` in ~/.config/flow/config.toml.
+-- command flows through ``current_profile`` in ~/.config/mycelium/config.toml.
 -- If the plugin ever needs to drive a per-call profile, the calling
 -- site has to put ``--profile`` into ``args`` at the position the
 -- specific sub-command expects.
@@ -45,11 +45,11 @@ local function build_argv(args, opts)
   return argv
 end
 
--- Run ``flow --json <args>``, decode stdout as JSON, and invoke
+-- Run ``mycelium --json <args>``, decode stdout as JSON, and invoke
 -- ``on_done(ok, value_or_err)`` on the main loop.
 function M.json(args, on_done)
   if not ensure_bin(config().bin) then
-    on_done(false, "flow-cli not on PATH")
+    on_done(false, "mycelium-cli not on PATH")
     return
   end
   local argv = build_argv(args, { json = true })
@@ -57,12 +57,12 @@ function M.json(args, on_done)
     vim.schedule(function()
       if res.code ~= 0 then
         local err = res.stderr ~= "" and res.stderr or res.stdout
-        on_done(false, vim.trim(err or "flow exited " .. res.code))
+        on_done(false, vim.trim(err or "mycelium exited " .. res.code))
         return
       end
       local ok, decoded = pcall(vim.json.decode, res.stdout, { luanil = { object = true, array = true } })
       if not ok then
-        on_done(false, "could not decode flow JSON output: " .. tostring(decoded))
+        on_done(false, "could not decode mycelium JSON output: " .. tostring(decoded))
         return
       end
       on_done(true, decoded)
@@ -70,35 +70,35 @@ function M.json(args, on_done)
   end)
 end
 
--- Run ``flow <args>`` for side effect, no JSON parsing.
+-- Run ``mycelium <args>`` for side effect, no JSON parsing.
 function M.run(args, on_done)
   if not ensure_bin(config().bin) then
-    if on_done then on_done(false, "flow-cli not on PATH") end
+    if on_done then on_done(false, "mycelium-cli not on PATH") end
     return
   end
   vim.system(build_argv(args), { text = true }, function(res)
     vim.schedule(function()
       local ok = res.code == 0
       if not ok then
-        vim.notify(res.stderr or "flow failed", vim.log.levels.ERROR, { title = "flow-nvim" })
+        vim.notify(res.stderr or "mycelium failed", vim.log.levels.ERROR, { title = "mycelium-nvim" })
       end
       if on_done then on_done(ok, res.stdout) end
     end)
   end)
 end
 
--- Send ``stdin`` to ``flow <args>`` (used by the "edit then save" flow
+-- Send ``stdin`` to ``mycelium <args>`` (used by the "edit then save" mycelium
 -- so the user's markdown buffer body becomes the note text).
 function M.run_stdin(args, stdin, on_done)
   if not ensure_bin(config().bin) then
-    if on_done then on_done(false, "flow-cli not on PATH") end
+    if on_done then on_done(false, "mycelium-cli not on PATH") end
     return
   end
   vim.system(build_argv(args), { text = true, stdin = stdin }, function(res)
     vim.schedule(function()
       local ok = res.code == 0
       if not ok then
-        vim.notify(res.stderr or "flow failed", vim.log.levels.ERROR, { title = "flow-nvim" })
+        vim.notify(res.stderr or "mycelium failed", vim.log.levels.ERROR, { title = "mycelium-nvim" })
       end
       if on_done then on_done(ok, res.stdout) end
     end)

@@ -9,14 +9,14 @@ local function has_telescope()
 end
 
 local function backend()
-  local cfg = require("flow").config.picker
+  local cfg = require("mycelium").config.picker
   if cfg == "select" then return "select" end
   if cfg == "telescope" then return "telescope" end
   return has_telescope() and "telescope" or "select"
 end
 
 local function fmt_task(t)
-  local id = require("flow.ui").short_id(t.id)
+  local id = require("mycelium.ui").short_id(t.id)
   local title = t.title or "<untitled>"
   local state = t.state or "?"
   local due = t.due_date or ""
@@ -24,7 +24,7 @@ local function fmt_task(t)
 end
 
 local function fmt_note(n)
-  local id = require("flow.ui").short_id(n.id)
+  local id = require("mycelium.ui").short_id(n.id)
   local kind = n.kind or "?"
   local title = n.title or (n.transcript or ""):sub(1, 80)
   return string.format("%-8s  %-7s  %s", id, kind, title)
@@ -53,7 +53,7 @@ local function telescope_pick(items, display, on_pick, prompt, actions_map)
 
   pickers
     .new({}, {
-      prompt_title = prompt or "Flow",
+      prompt_title = prompt or "Mycelium",
       finder = finders.new_table({
         results = items,
         entry_maker = function(item)
@@ -95,11 +95,11 @@ local function pick(items, display, on_pick, prompt, actions_map)
 end
 
 function M.pick_task(tasks, on_pick, actions_map)
-  pick(tasks, fmt_task, on_pick, "Flow tasks", actions_map)
+  pick(tasks, fmt_task, on_pick, "Mycelium tasks", actions_map)
 end
 
 function M.pick_note(notes, on_pick, actions_map)
-  pick(notes, fmt_note, on_pick, "Flow notes", actions_map)
+  pick(notes, fmt_note, on_pick, "Mycelium notes", actions_map)
 end
 
 return M

@@ -1,4 +1,4 @@
--- ``:checkhealth flow`` — verify the CLI is installed, on PATH, and
+-- ``:checkhealth mycelium`` — verify the CLI is installed, on PATH, and
 -- has a working credential.
 
 local M = {}
@@ -10,12 +10,12 @@ function M.check()
   local warn = health.warn or health.report_warn
   local err = health.error or health.report_error
 
-  local bin = require("flow").config.bin
-  start("flow-nvim")
+  local bin = require("mycelium").config.bin
+  start("mycelium-nvim")
   if vim.fn.executable(bin) ~= 1 then
     err(("`%s` not found on PATH"):format(bin), {
-      "Install: brew install angleto/flow/flow-cli",
-      "Or:      pipx install flow-cli",
+      "Install: brew install angleto/mycelium/mycelium-cli",
+      "Or:      pipx install mycelium-cli",
     })
     return
   end
@@ -34,8 +34,8 @@ function M.check()
   if res.code == 0 then
     ok("credential present and reachable")
   else
-    warn("flow auth status failed", {
-      "Run `flow auth login --base-url <https://...>` to set up.",
+    warn("mycelium auth status failed", {
+      "Run `mycelium auth login --base-url <https://...>` to set up.",
       "Last error: " .. vim.trim(res.stderr or ""),
     })
   end

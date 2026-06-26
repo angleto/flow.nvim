@@ -10,10 +10,10 @@ end
 
 function M.open_text_buffer(title, lines, opts)
   opts = opts or {}
-  local open_cmd = opts.open_cmd or require("flow").config.open_cmd
+  local open_cmd = opts.open_cmd or require("mycelium").config.open_cmd
   vim.cmd(open_cmd)
   local buf = vim.api.nvim_get_current_buf()
-  vim.api.nvim_buf_set_name(buf, "flow://" .. title)
+  vim.api.nvim_buf_set_name(buf, "mycelium://" .. title)
   vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
   vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
   vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
@@ -30,9 +30,9 @@ end
 -- A Markdown scratch buffer the user can write (``:w``). When written
 -- it invokes ``on_save(text)``; the buffer is wiped afterwards.
 function M.open_editor_buffer(title, initial_lines, on_save)
-  vim.cmd(require("flow").config.open_cmd)
+  vim.cmd(require("mycelium").config.open_cmd)
   local buf = vim.api.nvim_get_current_buf()
-  vim.api.nvim_buf_set_name(buf, "flow://" .. title)
+  vim.api.nvim_buf_set_name(buf, "mycelium://" .. title)
   vim.api.nvim_set_option_value("buftype", "acwrite", { buf = buf })
   vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
   vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
@@ -44,7 +44,7 @@ function M.open_editor_buffer(title, initial_lines, on_save)
       local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
       local text = vim.trim(table.concat(lines, "\n"))
       if text == "" then
-        vim.notify("flow-nvim: empty buffer; not saving.", vim.log.levels.WARN)
+        vim.notify("mycelium-nvim: empty buffer; not saving.", vim.log.levels.WARN)
         return
       end
       vim.api.nvim_set_option_value("modified", false, { buf = buf })
@@ -64,15 +64,15 @@ function M.short_id(id)
   return s:sub(1, s:find("-") and (s:find("-") - 1) or 8)
 end
 
--- A writable resource buffer (e.g. ``flow://task/<id>``) whose ``:w``
+-- A writable resource buffer (e.g. ``mycelium://task/<id>``) whose ``:w``
 -- diffs the first Markdown ``# heading`` as the title and everything
 -- after it as the body, then invokes ``on_save(title, body, on_done)``.
--- on_save is responsible for calling the right ``flow ... edit`` and
+-- on_save is responsible for calling the right ``mycelium ... edit`` and
 -- calling ``on_done()`` on success; we just clear the modified flag.
 function M.open_editable_resource(name, header_line, title, body, on_save)
-  vim.cmd(require("flow").config.open_cmd)
+  vim.cmd(require("mycelium").config.open_cmd)
   local buf = vim.api.nvim_get_current_buf()
-  vim.api.nvim_buf_set_name(buf, "flow://" .. name)
+  vim.api.nvim_buf_set_name(buf, "mycelium://" .. name)
   vim.api.nvim_set_option_value("buftype", "acwrite", { buf = buf })
   vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
   vim.api.nvim_set_option_value("swapfile", false, { buf = buf })

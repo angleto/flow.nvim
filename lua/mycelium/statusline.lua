@@ -12,7 +12,7 @@ local cache = {
 local TTL_SECONDS = 30
 
 local function refresh()
-  local cfg = require("flow").config
+  local cfg = require("mycelium").config
   if vim.fn.executable(cfg.bin) ~= 1 then
     cache.text = ""
     cache.ts = os.time()
@@ -66,7 +66,7 @@ function M.timer()
   return cache.text
 end
 
--- Public: force a refresh now (e.g. after :Flow tasks <C-s>).
+-- Public: force a refresh now (e.g. after :Mycelium tasks <C-s>).
 function M.refresh()
   cache.ts = 0
   M.timer()

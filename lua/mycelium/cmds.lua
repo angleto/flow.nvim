@@ -1,4 +1,4 @@
--- :Flow <subcommand> dispatcher and the actual sub-command handlers.
+-- :Mycelium <subcommand> dispatcher and the actual sub-command handlers.
 
 local M = {}
 
@@ -25,16 +25,16 @@ function M.complete(arglead)
 end
 
 local function notify_err(msg)
-  vim.notify(msg, vim.log.levels.ERROR, { title = "flow-nvim" })
+  vim.notify(msg, vim.log.levels.ERROR, { title = "mycelium-nvim" })
 end
 
 local function notify_ok(msg)
-  vim.notify(msg, vim.log.levels.INFO, { title = "flow-nvim" })
+  vim.notify(msg, vim.log.levels.INFO, { title = "mycelium-nvim" })
 end
 
 local function today()
-  local cli = require("flow.cli")
-  local ui = require("flow.ui")
+  local cli = require("mycelium.cli")
+  local ui = require("mycelium.ui")
   cli.json({ "today" }, function(ok, data)
     if not ok then notify_err(data) return end
     local lines = { "# Today (" .. (data.date or "") .. ")", "" }
@@ -76,8 +76,8 @@ local function today()
 end
 
 local function week()
-  local cli = require("flow.cli")
-  local ui = require("flow.ui")
+  local cli = require("mycelium.cli")
+  local ui = require("mycelium.ui")
   cli.json({ "week" }, function(ok, data)
     if not ok then notify_err(data) return end
     local lines = { "# Week (" .. (data["from"] or "") .. " → " .. (data["to"] or "") .. ")", "" }
@@ -107,7 +107,7 @@ end
 -- selected task; after the action we re-run the view so the picker
 -- reflects the new state (e.g. a marked-done task disappears).
 local function task_actions(reopen)
-  local cli = require("flow.cli")
+  local cli = require("mycelium.cli")
   return {
     ["<C-d>"] = function(task)
       cli.run({ "task", "done", task.id }, function(ok)
@@ -121,7 +121,7 @@ local function task_actions(reopen)
       cli.run({ "timer", "start", task.id }, function(ok)
         if ok then
           notify_ok("timer started on " .. (task.title or task.id))
-          pcall(function() require("flow.statusline").refresh() end)
+          pcall(function() require("mycelium.statusline").refresh() end)
         end
       end)
     end,
@@ -132,10 +132,10 @@ local function task_actions(reopen)
 end
 
 local function tasks_view()
-  local cli = require("flow.cli")
+  local cli = require("mycelium.cli")
   cli.json({ "task", "list" }, function(ok, data)
     if not ok then notify_err(data) return end
-    require("flow.pickers").pick_task(data, function(task)
+    require("mycelium.pickers").pick_task(data, function(task)
       cli.json({ "task", "show", task.id }, function(ok2, full)
         if not ok2 then notify_err(full) return end
         local t = (full.task or full)
@@ -143,10 +143,10 @@ local function tasks_view()
           t.state or "?", t.due_date or "-",
           tostring(t.priority or "?"), tostring(t.version or "?")
         )
-        require("flow.ui").open_editable_resource(
+        require("mycelium.ui").open_editable_resource(
           "task/" .. task.id, header, t.title, t.description or "",
           function(new_title, new_body, on_done)
-            -- The CLI's ``flow task edit`` reads the description from
+            -- The CLI's ``mycelium task edit`` reads the description from
             -- stdin when given ``--description -``; we pass the title
             -- as a flag.
             local args = { "task", "edit", task.id, "--title", new_title, "--description", "-" }
@@ -164,16 +164,16 @@ local function tasks_view()
 end
 
 local function notes_view()
-  local cli = require("flow.cli")
+  local cli = require("mycelium.cli")
   cli.json({ "note", "list" }, function(ok, data)
     if not ok then notify_err(data) return end
-    require("flow.pickers").pick_note(data, function(note)
+    require("mycelium.pickers").pick_note(data, function(note)
       cli.json({ "note", "show", note.id }, function(ok2, full)
         if not ok2 then notify_err(full) return end
         local header = ("_kind: %s  task: %s  v%s_"):format(
           full.kind or "?", full.task_id or "-", tostring(full.version or "?")
         )
-        require("flow.ui").open_editable_resource(
+        require("mycelium.ui").open_editable_resource(
           "note/" .. note.id, header, full.title or "", full.transcript or "",
           function(new_title, new_body, on_done)
             local args = { "note", "edit", note.id, "--title", new_title, "--text", "-" }
@@ -191,12 +191,12 @@ local function notes_view()
 end
 
 local function note_new()
-  require("flow.ui").open_editor_buffer("note/new", {
+  require("mycelium.ui").open_editor_buffer("note/new", {
     "<!-- write your note below; :w to save, :q! to discard -->",
     "",
   }, function(text, on_done)
     local body = text:gsub("^<!%-%-.-%-%->\n*", "")
-    require("flow.cli").run_stdin(
+    require("mycelium.cli").run_stdin(
       { "note", "add", "--no-editor", "--text", "-" }, body,
       function(ok)
         if ok then
@@ -211,12 +211,12 @@ end
 local function task_new()
   vim.ui.input({ prompt = "Task title: " }, function(title)
     if not title or title == "" then return end
-    require("flow.ui").open_editor_buffer("task/new", {
+    require("mycelium.ui").open_editor_buffer("task/new", {
       "<!-- task description; :w to save, :q! to discard -->",
       "",
     }, function(text, on_done)
       local body = text:gsub("^<!%-%-.-%-%->\n*", "")
-      require("flow.cli").run(
+      require("mycelium.cli").run(
         { "task", "add", title, "--description", body, "--no-editor" },
         function(ok)
           if ok then
@@ -232,7 +232,7 @@ end
 local function search()
   vim.ui.input({ prompt = "Search: " }, function(query)
     if not query or query == "" then return end
-    require("flow.cli").json({ "search", query }, function(ok, hits)
+    require("mycelium.cli").json({ "search", query }, function(ok, hits)
       if not ok then notify_err(hits) return end
       local items = {}
       for _, h in ipairs(hits) do
@@ -251,7 +251,7 @@ local function search()
         end,
       }, function(picked)
         if picked then
-          require("flow.cli").run({ "open", tostring(picked.id) }, function() end)
+          require("mycelium.cli").run({ "open", tostring(picked.id) }, function() end)
         end
       end)
     end)
@@ -260,11 +260,11 @@ end
 
 local function open_url(args)
   local target = args[2] or "today"
-  require("flow.cli").run({ "open", target }, function() end)
+  require("mycelium.cli").run({ "open", target }, function() end)
 end
 
 local function status_view()
-  require("flow.cli").json({ "auth", "status" }, function(ok, data)
+  require("mycelium.cli").json({ "auth", "status" }, function(ok, data)
     if not ok then notify_err(data) return end
     local server = data.server or {}
     notify_ok(("profile %s @ %s  server: %s"):format(
@@ -296,7 +296,7 @@ function M.dispatch(args)
     return
   end
   -- ``open`` takes a positional ref; pass the args through so the
-  -- caller can write ``:Flow open <task-id>``.
+  -- caller can write ``:Mycelium open <task-id>``.
   if sub == "open" then
     handler(args)
   else

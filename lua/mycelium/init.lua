@@ -1,18 +1,18 @@
--- Public surface: ``require("flow").setup(opts)`` and a small helper
+-- Public surface: ``require("mycelium").setup(opts)`` and a small helper
 -- API that other plugins can consume. The split is deliberate: the
 -- moduli with vim.system / telescope live behind require-on-demand so
 -- the setup itself stays a few microseconds.
 
 local M = {}
 
----@class flow.Config
----@field bin string Path or name of the flow CLI binary (default: "flow")
+---@class mycelium.Config
+---@field bin string Path or name of the mycelium CLI binary (default: "mycelium")
 ---@field profile string|nil --profile to pass through to the CLI
 ---@field default_limit integer Default list limit
 ---@field picker "auto"|"telescope"|"select" Picker backend
 ---@field open_cmd string Command used to open results buffers (e.g. "tabnew")
 local defaults = {
-  bin = "flow",
+  bin = "mycelium",
   profile = nil,
   default_limit = 100,
   picker = "auto",
@@ -27,15 +27,15 @@ end
 
 -- Re-exports for plugin authors / personal config
 function M.cli()
-  return require("flow.cli")
+  return require("mycelium.cli")
 end
 
 function M.pickers()
-  return require("flow.pickers")
+  return require("mycelium.pickers")
 end
 
 function M.statusline()
-  return require("flow.statusline")
+  return require("mycelium.statusline")
 end
 
 return M
